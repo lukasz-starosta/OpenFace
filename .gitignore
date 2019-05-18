@@ -100,3 +100,6 @@ lib/local/Utilities/Debug/
 lib/3rdParty/CameraEnumerator/Debug/
 lib/local/CppInerop/Debug/
 *.user
+exe/GazeMapping/Release/
+exe/GazeMapping/Debug/
+exe/GazeMapping/x64/
