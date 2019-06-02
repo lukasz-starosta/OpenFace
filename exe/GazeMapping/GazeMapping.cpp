@@ -2,11 +2,17 @@
 //
 #include "LandmarkCoreIncludes.h"
 #include "GazeEstimation.h"
-
+#include <list>
+#include <string>
 #include <SequenceCapture.h>
 #include <Visualizer.h>
 #include <VisualizationUtils.h>
+#include <Eigen/Dense>
+#include <math.h>
 
+#include <LandmarkDetectorFunc.h>
+using namespace LandmarkDetector;
+using namespace Eigen;
 #define INFO_STREAM( stream ) \
 std::cout << stream << std::endl
 
@@ -113,7 +119,26 @@ int main(int argc, char **argv)
 				GazeAnalysis::EstimateGaze(face_model, gazeDirection1, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy, false);
 
 				gazeAngle = GazeAnalysis::GetGazeAngle(gazeDirection0, gazeDirection1);
-				cout << gazeAngle << endl;
+				//cout << gazeAngle[0] * (180.0 / 3.14159265) << endl;
+				//cout << gazeAngle[1] * (180.0 / 3.14159265) << endl;
+				cv::Vec6f XYZ_Position = GetPose(face_model, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
+				//cout << "X:"<<XYZ_Position[0]  << '\n' << "Y:" << XYZ_Position[1] << '\n' << "Z:" << XYZ_Position[2] << endl;
+				Matrix3f A;
+				Vector3f B;
+				A << 0, 1 / tan(gazeAngle[0]), -1, -1, 0, tan(gazeAngle[1]), 0, 0, 1;
+				B << XYZ_Position[1], -XYZ_Position[0], XYZ_Position[2];
+				Vector3f X = A.colPivHouseholderQr().solve(B);
+				float x = X[0], y = X[1], z = X[2];
+				if (x <= 0) cout << "up" << endl;
+				else if (x > 0) cout << "down" << endl;
+				if (y <= 0) cout << "right" << endl << endl;
+				else if (y > 0) cout << "left" << endl << endl;
+
+
+				//cout << A << endl;
+				//cout << B << endl;
+			   //cout << "SOLUTION:\n" << X << endl;
+				Sleep(100);
 			}
 
 			// Work out the pose of the head from the tracked model
